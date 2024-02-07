@@ -5,36 +5,58 @@ browser.storage.sync.get({
 })
     .then(start);
 
+let videoDisabled = false;
+let audioDisabled = false;
+
+document.addEventListener('load', () => {
+    start();
+})
+
 function start(settings) {
-    const interval = setInterval(() => {
-        if(settings.disableCamera) {
+    if (settings.disableCamera) {
+        const videoInterval = setInterval(() => {
             const element = document.querySelector('div[aria-label^="Turn off camera"]');
-            if (element) {
-                clearInterval(interval);
+            // if (element.getAttribute('data-is-muted') === 'true') {
+            if(element) {
+                element.click();
+            } else {
+                clearInterval(videoInterval);
+                videoDisabled = true;
             }
-            element.click();
-        }
-        if(settings.disableMicrophone) {
+        }, 1000);
+    }
+    if(settings.disableMicrophone) {
+        const audioInterval = setInterval(() => {
             const element = document.querySelector('div[aria-label^="Turn off microphone"]');
-            if (element) {
-                clearInterval(interval);
+            // if (element.getAttribute('data-is-muted') === 'true') {
+            if(element) {
+                element.click();
+            } else {
+                clearInterval(audioInterval);
+                audioDisabled = true;
             }
-            element.click();
-        }
+        }, 1000);
+    }
+    if(settings.autoJoin) {
         autoJoin(settings);
-    }, 500);
+    }
 }
 
 function autoJoin(settings) {
-    const interval = setInterval(() => {
-        if(settings.autoJoin) {
-            document.querySelectorAll('button').forEach(button => {
-                if(button.innerText === 'Join now') {
-                    clearInterval(interval);
+    const autoJoinInterval = setInterval(() => {
+        if(audioDisabled && videoDisabled) {
+            let found = false;
+            document
+              .querySelectorAll('button')
+              .forEach(button => {
+                if (button.innerText === 'Join now') {
+                    found = true;
                     button.click();
-
                 }
-            })
+              });
+            if(!found) {
+                clearInterval(autoJoinInterval);
+            }
         }
     }, 500);
 }
